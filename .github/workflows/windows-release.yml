@@ -1,0 +1,45 @@
+name: Windows release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  msi:
+    name: Build Windows MSI
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      PUPPETEER_SKIP_DOWNLOAD: '1'
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Use Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24.14.0
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Build bundled MSI installer
+        run: npm run build:msi
+
+      - name: Publish MSI to GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          gh release view $env:GITHUB_REF_NAME 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $env:GITHUB_REF_NAME --generate-notes
+          }
+          gh release upload $env:GITHUB_REF_NAME release/*.msi --clobber
