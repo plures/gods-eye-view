@@ -86,6 +86,7 @@
     "productName": "God's Eye View",
     "asar": false,
     "directories": {
+      "buildResources": "desktop/installer-resources",
       "output": "release"
     },
     "win": {
