@@ -3,8 +3,8 @@ import { fileURLToPath } from 'node:url';
 
 /** Resolve defaultSourceRoot for ESM context. */
 const defaultSourceRoot = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  '../../..',
+  process.env.GEV_SOURCE_ROOT ||
+    path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..'),
 );
 
 export { defaultSourceRoot };

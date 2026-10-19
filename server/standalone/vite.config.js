@@ -9,10 +9,11 @@ import { standaloneVoiceTools } from './voiceTools.js';
 import { unwatchedRuntimeDirsPlugin } from './unwatched-cache.js';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
+const configRoot = process.env.GEV_SOURCE_ROOT || root;
 
 /** Load this checkout's configuration and attach its local provider middleware. */
 export default defineConfig(({ command, mode }) => {
-  const loaded = loadEnv(mode, root, '');
+  const loaded = loadEnv(mode, configRoot, '');
   for (const [key, value] of Object.entries(loaded)) {
     if (process.env[key] === undefined) process.env[key] = value;
   }
@@ -26,6 +27,7 @@ export default defineConfig(({ command, mode }) => {
     googleApiKey: process.env.GOOGLE_MAPS_API_KEY,
     cesiumToken: process.env.CESIUM_ION_TOKEN,
     mapillaryToken: process.env.MAPILLARY_CLIENT_TOKEN,
+    cacheDir: process.env.GEV_VITE_CACHE_DIR,
     host: process.env.HOST,
     port: process.env.PORT,
     allowedHosts: resolveAllowedHosts(process.env.GEV_ALLOWED_HOSTS),

@@ -1,8 +1,16 @@
 import { applicationHtmlPlugin } from './application-html.js';
 import cesium from 'vite-plugin-cesium';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { DEFAULT_ALLOWED_HOSTS, hostCheckPlugin } from './allowedHosts.js';
 import { embedFramingPlugin } from './embed-framing.js';
 import { panelBuildPlugin } from './panel.js';
+
+const cesiumBuildRootPath = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../node_modules/cesium/Build',
+);
+const cesiumBuildPath = path.join(cesiumBuildRootPath, 'Cesium');
 
 /**
  * Content-Security-Policy for every document the dev/preview server serves.
@@ -56,6 +64,7 @@ export function createBrowserViteConfig({
   mapillaryToken,
   host = 'localhost',
   port = 4173,
+  cacheDir,
   allowedHosts = DEFAULT_ALLOWED_HOSTS,
   command,
 } = {}) {
@@ -63,7 +72,7 @@ export function createBrowserViteConfig({
     plugins: [
       // First, so no provider route answers a Host the server does not allow.
       hostCheckPlugin(),
-      cesium(),
+      cesium({ cesiumBuildRootPath, cesiumBuildPath }),
       applicationHtmlPlugin(),
       ...plugins,
       embedFramingPlugin(),
@@ -72,7 +81,11 @@ export function createBrowserViteConfig({
     ...(publicDir === undefined ? {} : { publicDir }),
     // A production build must not clean the dependency cache a running dev
     // server is still serving optimized module URLs from.
-    ...(command === 'build' ? { cacheDir: 'node_modules/.vite-build' } : {}),
+    ...(cacheDir
+      ? { cacheDir }
+      : command === 'build'
+        ? { cacheDir: 'node_modules/.vite-build' }
+        : {}),
     optimizeDeps: {
       // First reached through the SDR worker or a dynamic import. Pre-bundle
       // them at startup so first use cannot invalidate already-transformed
